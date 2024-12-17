@@ -26,7 +26,7 @@ You can see the effects of the weighted model or baselined model by running weig
 
 ## Function Overview 
 - **process_kaggle** (file_path: str) -> List[Tuple[str, dict[str, dict[str, float]]]]
-    - this function takes in our clean data and returns the text of the review formated with the 
+    - this function takes in our clean data and returns the positive negative annotation of the review formated as a dictionary where POSITIVE and NEGATIVE are keys and the value of 1 indicates whether it is positive or negative.
 
 
 - **extract_dependency_layers**(sentences: str) -> List[List[List[str]]]:
