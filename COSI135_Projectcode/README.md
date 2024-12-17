@@ -1,7 +1,7 @@
 # Project Evaluation
 
 ## Scope 
-The scope of this project was to see whether weighting word vectors by a scalar based upon their depdency relationship within the sentences of the training data might be useful for text categorization of positive and negative sentiment. The linguistic theory behind is that it is often said that verbs are the core of the sentence and the rest of the sentence is built around them. As such, it might be reasonable to think that weighting the verb as more important will increase the accuracy of the model as compared to a Bag of Words approach. EG "I love you"  and "I hate you" are almost entirely different but "I hate this" and "I hate that" are rather similar.
+The scope of this project was to see whether weighting word vectors by a scalar based upon their depdency relationship within the sentences of the training data might be useful for text categorization of positive and negative sentiment. The linguistic theory behind this is that it is often said that verbs are the core of the sentence and the rest of the sentence is built around them. As such, it might be reasonable to think that weighting the verb as more important will increase the accuracy of the model as compared to a Bag of Words approach. EG "I love you"  and "I hate you" are almost entirely different but "I hate this" and "I hate that" are rather similar.
 
 ### Key Points to Include:
 - **Project Objective**: To explore the effects of weighting words vectors based on their dependency for sentiment classification. 
