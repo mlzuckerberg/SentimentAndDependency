@@ -1,25 +1,20 @@
+# File: read_score.py
+# Description: Reads the scores from the model and plots them.
+# Author: Jacob Tinkelman & Michelle Zuckerberg
+# Date: December 17, 2024
 
 import pickle
 import pandas as pd
 from collections import defaultdict, Counter
 import matplotlib.pyplot as plt
 
+# Loads the data from the pickle file.
 with open("best_scores.pkl", "rb") as file:  # Open the file in read-binary mode
     loaded_data = pickle.load(file)
 print(loaded_data)
 
+# This function converts a list of dictionaries into a pandas DataFrame, sorts it by accuracy, and saves the DataFrame to a CSV file.
 def process_data(data, file_name="sorted_data.csv"):
-    """
-    Converts a list of dictionaries into a pandas DataFrame, sorts it by accuracy, 
-    and saves the DataFrame to a CSV file.
-
-    Parameters:
-        data (list): A list of dictionaries containing 'scalar', 'lr', 'drop', and 'accuracy'.
-        file_name (str): The name of the file to save the DataFrame to.
-
-    Returns:
-        pd.DataFrame: The sorted DataFrame.
-    """
     # Convert list of dictionaries to a DataFrame
     df = pd.DataFrame(data)
     
@@ -34,8 +29,7 @@ def process_data(data, file_name="sorted_data.csv"):
 sorted_df = process_data(loaded_data)
 
 
-
-"""goes through all scalar values and average the accuracy"""
+# This function averages the accuracy for each scalar value.
 def average_scalar_accuracy():
     the_sums = defaultdict(float) 
     occurences = Counter()
@@ -53,8 +47,9 @@ def average_scalar_accuracy():
     return averages
 
 averages = average_scalar_accuracy()
-#defaultdict(<class 'float'>, {0.5: 0.7916926312609595, 0.7: 0.7860403582688614, 0.9: 0.7722740738011488, 1.0: 0.7893817197405696, 1.1: 0.7958545444467883, 1.3: 0.7994522408355372})
 
+
+# This function plots the accuracy for each scalar value.
 def plot():
     xvalues, yvalues = [], []
     for scalar, accuracy in averages.items():

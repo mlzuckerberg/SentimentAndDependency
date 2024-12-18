@@ -1,24 +1,19 @@
+# File: get_datasets.py
+# Description: Creates the training, dev, and test sets.
+# Author: Jacob Tinkelman & Michelle Zuckerberg
+# Date: December 17, 2024
+
 from collections import defaultdict
 import re
 import random
+import os
 
 # Lists to hold positive and negative reviews
 positive = []
 negative = []
 
-# Load data from the file
+# This function splits the data into positive and negative lists based on their sentiment label.
 def split_og(file_path: str) -> tuple[list[str], list[str]]:
-    """
-    Separate lines from a text file into positive and negative lists based on their sentiment label.
-    
-    Args:
-        file_path (str): Path to the input text file
-    
-    Returns:
-        A tuple containing two lists:
-        - First list: Negative sentiment lines
-        - Second list: Positive sentiment lines
-    """
     negative_lines = []
     positive_lines = []
     
@@ -35,21 +30,21 @@ def split_og(file_path: str) -> tuple[list[str], list[str]]:
                 
                 # Categorize based on label
                 if label == '0':
-                    negative_lines.append(line) #could have just used [-1] the whole time not well designed
+                    negative_lines.append(line)
                 elif label == '1':
                     positive_lines.append(line)
     
     return (negative_lines, positive_lines)
 
 
-
+# This function splits the data into positive and negative lists based on their sentiment label.
 data = split_og("kaggle_og.txt")
 positive = data[0]
 negative = data[1]
 print(positive[0])
 
 
-# Function to check for duplicates
+# This function checks for duplicates in a list.
 def check_duplicates(a_list):
     my_dict = defaultdict(list)
     duplicates = []
@@ -65,7 +60,7 @@ def check_duplicates(a_list):
 
 
 
-# Function that selects random indices 
+#   This function selects random indices from a list.
 def random_split(a_list, percentage):
     if not 0 < percentage < 1:
         raise ValueError("Percentage must be between 0 and 1.")
@@ -78,8 +73,7 @@ def random_split(a_list, percentage):
     
     return sub_list, remaining_list
 
-# Function to create training, dev, and test sets
-# Function to create training, dev, and test sets
+# This function creates the training, dev, and test sets.
 def make_sets(dev_percent, test_percent):
     if not 0 < dev_percent + test_percent < 1:
         raise ValueError("Dev and test percentages must sum to less than 1.")
@@ -109,14 +103,9 @@ def make_sets(dev_percent, test_percent):
 # Generate the sets
 training_set, dev_set, test_set = make_sets(0.15, 0.15)
 
-
-
 print(f"Training set size: {len(training_set)}")
 print(f"Development set size: {len(dev_set)}")
 print(f"Test set size: {len(test_set)}")
-
-
-import os
  
 set_names = ("dev_set", "training_set", "test_set")
 

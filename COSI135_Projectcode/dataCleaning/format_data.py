@@ -1,19 +1,13 @@
+# File: format_data.py
+# Description: Processes the Kaggle data and formats it for the model.
+# Author: Jacob Tinkelman & Michelle Zuckerberg
+# Date: December 17, 2024   
 
 import re
 from typing import List, Tuple
 
+# This function processes the kaggle data and returns a list of tuples. Each tuple contains a processed sentence and a sentiment dictionary.
 def process_kaggle(file_path: str) -> List[Tuple[str, dict[str, dict[str, float]]]]:
-    """
-    Process a text file with sentences and binary sentiment labels.
-    
-    Args:
-        file_path (str): Path to the input text file
-    
-    Returns:
-        List of tuples, each containing:
-        - Lowercase processed sentence
-        - Sentiment dictionary with POSITIVE and NEGATIVE probabilities
-    """
     processed_data = []
     
     with open(file_path, 'r', encoding='utf-8') as file:
@@ -40,9 +34,5 @@ def process_kaggle(file_path: str) -> List[Tuple[str, dict[str, dict[str, float]
             }
             
             processed_data.append((cleaned_text, sentiment))
-    #return processed_data
     
-
-
-
 process_kaggle('kaggle_og.txt')
