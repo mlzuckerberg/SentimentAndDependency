@@ -1,48 +1,117 @@
-# Project Evaluation
+# Sentiment Analysis with Dependency-Weighted Word Vectors
+
+## Authors
+- Jacob Tinkelman
+- Michelle Zuckerberg
+
+## Overview
+A novel approach to sentiment analysis that weights word vectors based on their dependency relationships within sentences. The hypothesis is that verbs, as the core of sentences, might carry more sentiment weight (e.g., "love" vs "hate" being more significant than variations in their objects).
 
 ## Scope 
 The scope of this project was to see whether weighting word vectors by a scalar based upon their depdency relationship within the sentences of the training data might be useful for text categorization of positive and negative sentiment. The linguistic theory behind this is that it is often said that verbs are the core of the sentence and the rest of the sentence is built around them. As such, it might be reasonable to think that weighting the verb as more important will increase the accuracy of the model as compared to a Bag of Words approach. EG "I love you"  and "I hate you" are almost entirely different but "I hate this" and "I hate that" are rather similar.
 
-### Key Points to Include:
-- **Project Objective**: To explore the effects of weighting words vectors based on their dependency for sentiment classification. 
+### Key Points
 - **What's the deliverable?**: A model in which you can initially weight word vectors on the traing-data to artificially raise or lower the magnitude of certain word vectors and hence their importance in the model. Along with thise a nearly identical model that doesn't weight the vectors to use as a neutral baseline.
 - **Boundaries**: We do not deal much beyond one sentneces reviews and if this weighting model might be more useful for non theme based classification such as identifying a literary genre given a text. We also did not take a look beyond binary labels such positive, negative, neutral classification. Nor did we implement multi-label where a text can be labeled as more than one category. This is because something cannot be both positive and negative.
-- **pipeline** imagine you are a peice of training data. The first thing that happens to you is that you are read into a tuple that is in a list and your annotation of 1 or 0 is turned into a dictionary format. Then you are processed into a doc a datatype. Here you split into a goldlabel version and non-gold label version. These two versions are then put back together into an example datatype. You are then fed to the train function as part a batch. 
+- **Pipeline** Imagine you are a peice of training data. The first thing that happens to you is that you are read into a tuple that is in a list and your annotation of 1 or 0 is turned into a dictionary format. Then you are processed into a doc a datatype. Here you split into a goldlabel version and non-gold label version. These two versions are then put back together into an example datatype. You are then fed to the train function as part a batch. 
 
-## Implementation 
-- **Technical Approach**: We decided to add a textcat pipeline to spacy which classifies an input based on the number of categories/labels you give to pipeline and annotations you add to your docs(a doc is Spacey datatype). We then need to prepare our annotated docs to be fed into the model. We do this by creating an Example datatype which holds one doc with the gold label and one with the initial training label. The model then trains on the Examples using the update function within the train function of our code. 
+## Requirements
+### Python Dependencies
+- Python 3.8+
+- spaCy 3.0+
+- NumPy
+- Pandas
+- Matplotlib
+- Pickle
 
-- **Workflow**: Within this folder you will see three files: BaseLineModel, dataCleaning, and weights_model. 
-    - **dataCleaning:** We will start with dataCleaning for this is the chronological place start. This file has the code that takes our raw Kaggle data formats it and then splits into a textfile of traing, dev, and test set split 70% training, 15 %dev, 15% test, respectively. 
-    - **baseline:**  Within the baseline model folder you will find the data which we have prepared and split into a training, dev, and test set. We then load the spacey 
-    - **Weights_model:** The weights model is by design fundamentally very similar to the baseline mode. In fact, it was built of off it. It contains the same the dev, test, and training set and the code is mostly identical. However, it contains two new functions extract_dependency_layers and weight_sentnces.
-    
-- **MORE**: *for more info on the meat and potatoes of implementation look at Function Overview below*
+### Data Files
+- kaggle_og.txt: Original dataset file from Kaggle
+- training_set.txt: Training data
+- dev_set.txt: Development/validation data
+- test_set.txt: Test data
+
+## Technical Approach
+ We decided to add a textcat pipeline to spacy which classifies an input based on the number of categories/labels you give to pipeline and annotations you add to your docs(a doc is Spacey datatype). We then need to prepare our annotated docs to be fed into the model. We do this by creating an Example datatype which holds one doc with the gold label and one with the initial training label. The model then trains on the Examples using the update function within the train function of our code. 
+
+## Execution and How to Run
+
+### Running the Models
+1. To evaluate model performance:
+   - Run `weighted_model.py` for the dependency-weighted model
+   - Run `baseline_model.py` for the baseline model
+
+### Analyzing Results
+1. For weighted model results:
+   - Check the generated CSV file for performance across hyperparameters
+   - Use `weighted_model/read_score.py` for detailed analysis and visualizations
+
+2. For baseline model results:
+   - Use `baseline_model/read_score.py` for analysis
+
+### Notes
+- Some hyperparameters are fixed to manage computational overhead
+- Model states are saved as `.pkl` files for efficiency
+  - To disable pickle file usage, comment out the relevant lines in the code
+  - Look for lines containing `pickle.dump()` or `pickle.load()`
 
 
-## Execution and How to Run 
-You can see the effects of the weighted model or baselined model by running weightModel.py or newBaseModel.py. To see the results over multiple hyperparameters, you can look at the csv file generated by the weighted model or you can more data by going into read_score.py file asssociated with each Model. A few hyperparameters were set to a constant because of computational time limitations. If you are reasobly nervous by my decision to use .pkl files you can comment out those lines of code.
+## File Structure and Functions
 
+### Data Cleaning Directory (`/data_cleaning/`)
+- **get_datasets.py**
+  - Creates training, development, and test datasets from raw Kaggle data
+  - Implements random splitting with configurable percentages (default 70/15/15)
+  - Handles duplicate removal and data validation
+  - Key functions:
+    - `split_og()`: Splits data into positive/negative sentiment lists
+    - `check_duplicates()`: Validates data for duplicates
+    - `random_split()`: Performs random dataset splitting
+    - `make_sets()`: Creates final training/dev/test sets
 
-## Function Overview 
-- **process_kaggle** (file_path: str) -> List[Tuple[str, dict[str, dict[str, float]]]]
-    - this function takes in our clean data and returns the positive negative annotation of the review formated as a dictionary where POSITIVE and NEGATIVE are keys and the value of 1 indicates whether it is positive or negative.
+- **format_data.py**
+  - Processes raw Kaggle data into model-ready format
+  - Converts text and labels into required dictionary structure
+  - Key functions:
+    - `process_kaggle()`: Converts raw data into (text, sentiment_dict) tuples
 
+- **kaggle_og.txt**
+  - Raw dataset containing restaurant reviews
+  - Each line contains:
+    - Review text
+    - Binary sentiment label (1 for positive, 0 for negative)
+  - Used as source data for training/dev/test set creation
 
-- **extract_dependency_layers**(sentences: str) -> List[List[List[str]]]:
-    - This function takes in a sentence and returns the words of a sentnece within a List of List of Lists. The most outer List is to handle the case of "When I went, I died" SpaCy treasts "when I went" and "i died" as two seperate layers. The from those two sub sentences the main verb and it's dependencies etc.. It's written recursively because we are dong the same task to many different words. Find it's dependency put it in a list. Find those dependencies put it in a list.
+### Model Directories
+#### Baseline Model (`/baseline_model/`)
+- **baseline_model.py**
+  - Implements standard spaCy text categorization without dependency weighting
+  - Provides baseline performance metrics for comparison
+  - Key functions:
+    - `process_kaggle()`: Formats data for model input
+    - `train()`: Trains the baseline model
+    - `evaluate()`: Tests model performance
+- **read_score.py**
+  - Analyzes baseline model performance
+  - Creates visualizations and statistics for baseline results
 
-- **weight_sentences**(datalayer, k):
-    - This function is designed to take in the result of _extract_dependency_layers. It then goes through each layer of dependencies in the sentences and give multiplies by them by k or a fraction of k. The main verb of a sentences always gets k. Then the dependencies of the main verb get scaled by k/2. Then the depdency of those get sclaed by k/3 etc.
+#### Weighted Model (`/weighted_model/`)
+- **weighted_model.py**
+  - Implements text categorization with dependency-weighted word vectors
+  - Applies different weights based on dependency relationships
+  - Key functions:
+    - `process_kaggle()`: Formats and weights input data
+    - `train()`: Trains the weighted model
+    - `evaluate()`: Tests model performance with different weight configurations
+- **read_score.py**
+  - Analyzes and visualizes weighted model performance
+  - Loads evaluation data from pickle files
+  - Creates comparative performance visualizations
+  - Key functions:
+    - `process_data()`: Converts results to pandas DataFrame
+    - `average_scalar_accuracy()`: Calculates average accuracy by weight scalar
+    - `plot()`: Visualizes performance metrics across different weights
 
-
-- **make_model_data**(data: tuple[str, dict[str, dict[str, float]]]) -> Iterable[example ]
-    - This formats our data and turns our annotated text into the doc datatype. It then turns that doc datatype into an Example datatype which we can feed into the train fucntion. Each example datatype is made up of two docs. One with the gold label annotation, and one with which the model can update it's guess on.
-
-
-- **train**(train_example, a_batch_size, an_epoch, a_dropnum, a_learnrate):
-    - This uses the update function and trains the model. It print's out the loss for the doc object categories.
-
-- **sweep()**:
-    - This function goes through and changes some hyperparameters of the train function to see how much they effect the models results. It stores these results as dictionary which is pickled and then passed of to the read_score.py script. 
- 
+Both directories use the same split datasets:
+- **training_set.txt**: Main training data
+- **dev_set.txt**: Development/validation data
+- **test_set.txt**: Test data for final evaluation

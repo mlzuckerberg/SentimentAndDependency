@@ -6,31 +6,23 @@ from spacy.scorer import Scorer
 from spacy.util import minibatch
 import re
 import random
+import pickle
 
 seed_value = 42
 np.random.seed(seed_value)
 random.seed(seed_value)
 
-#USEFUL LINKS
-#https://spacy.io/api/doc
-#https://spacy.io/api/example
-#https://spacy.io/api/textcategorizer
+# USEFUL LINKS
+# https://spacy.io/api/doc
+# https://spacy.io/api/example
+# https://spacy.io/api/textcategorizer
 
-
+# Loads the spacy model
 nlp = spacy.load("en_core_web_md") 
 
+
+# This function processes the kaggle data and returns a list of tuples. Each tuple contains a processed sentence and a sentiment dictionary.
 def process_kaggle(file_path: str) -> List[Tuple[str, dict[str, dict[str, float]]]]:
-    """
-    Process a text file with sentences and binary sentiment labels.
-    
-    Args:
-        file_path (str): Path to the input text file
-    
-    Returns:
-        List of tuples, each containing:
-        - Lowercase processed sentence
-        - Sentiment dictionary with POSITIVE and NEGATIVE probabilities
-    """
     processed_data = []
     
     with open(file_path, 'r', encoding='utf-8') as file:
@@ -60,9 +52,6 @@ def process_kaggle(file_path: str) -> List[Tuple[str, dict[str, dict[str, float]
     return processed_data
 
 
-
-
-
 TRAINING_PATH = 'training_set.txt'
 DEV_PATH = "dev_set.txt"
 TEST_PATH = "test_set.txt"
@@ -70,10 +59,6 @@ TEST_PATH = "test_set.txt"
 TRAINING_DATA = process_kaggle(TRAINING_PATH)
 DEV_DATA = process_kaggle(DEV_PATH)
 TEST_DATA = process_kaggle(TEST_PATH)
-
-
-
-
 
 config = {
     "threshold": 0.5,
@@ -105,23 +90,11 @@ config = {
 }
 
 
+# Extract the dependency layers from the sentences
+training_examples = [] 
 
-#a list of example( the datatype ) which textcat trains on. It's made of two docs
-training_examples = [] #
-
-
-
+# This function extracts the dependency layers from the sentences
 def extract_dependency_layers(sentences: str) -> List[List[List[str]]]:
-    """
-    Extract dependency layers from multiple sentences by following dependency tree arrows.
-    
-    Args:
-        sentences (str): Input string containing multiple sentences to parse
-    
-    Returns:
-        List of lists, where each inner list represents words reached by following 
-        dependency tree arrows from the root for each sentence.
-    """
     # Process the input string to split it into multiple sentences
     doc = nlp(sentences)
     
@@ -187,8 +160,7 @@ def extract_dependency_layers(sentences: str) -> List[List[List[str]]]:
     return all_layers
 
 
-
-
+# This function weights the sentences.
 def weight_sentences(datalayer, k):
     # Loop through each layer in the datalayer
     for data in datalayer:
@@ -219,9 +191,8 @@ def weight_sentences(datalayer, k):
         currk = currk/iter
 
 
-
+# This function makes the model data.
 def make_model_data(data: tuple[str, dict[str, dict[str, float]]]) -> Iterable[Example]:
-    """the model trains on examples, so this is what I am feeding into it. I have to do it this way otherwise all the other features go to 0"""
     example_list = [] #the list of examples for the model
     for text, annotations in data:
 
@@ -236,14 +207,8 @@ def make_model_data(data: tuple[str, dict[str, dict[str, float]]]) -> Iterable[E
     return example_list
 
 
-
-
-
-
-
-
+# This function trains the model.
 def train(train_example, a_batch_size, an_epoch, a_dropnum, a_learnrate):
-    """this actually tains the model based on the data that is examples """
     optimizer = nlp.begin_training()  # Initialize optimizer
     optimizer.learn_rate = a_learnrate
 
@@ -256,47 +221,37 @@ def train(train_example, a_batch_size, an_epoch, a_dropnum, a_learnrate):
         for batch in batches:
             # Update the model with the optimizer for all components
             # We pass 'drop' as a regularization parameter and use the optimizer
-            #textcat.update(batch, drop=a_dropnum, losses=losses, sgd=optimizer)
             nlp.update(batch, drop=a_dropnum, losses=losses, sgd=optimizer)
         
         print(f"Epoch {epoch + 1}, Losses: {losses}")
 
 
-
-
-import pickle
-"""the  lines of #...# mean that you cannot swap the order in which these lines of appear"""
+# This function sweeps the model.
 def sweep():
     
     scalars = [0.5, 0.7, 0.9, 1.0, 1.1, 1.3,1.5,2]
     all_score = []
 
     for c in scalars:
-        #goes through and scales the wordvectors
+        # Goes through and scales the wordvectors
         print("processing words")
         for text, label in TRAINING_DATA:
             datalayer = extract_dependency_layers(text)
             weight_sentences(datalayer, c)
         print("words processed")
         
-     #################################################################
-        
-        #loads are data into the model
-        training_examples = make_model_data(TRAINING_DATA) #stores sentiment in doc.cat attribute
+        # Loads our data into the model
+        training_examples = make_model_data(TRAINING_DATA) # Stores sentiment in doc.cat attribute
 
-     ###########################################################
+        
         if not nlp.has_pipe("textcat"):
-            textcat = nlp.add_pipe("textcat")  #set's up the classifier component
+            textcat = nlp.add_pipe("textcat")  # Sets up the classifier component
             textcat.add_label("POSITIVE")
             textcat.add_label("NEGATIVE")
     
 
-     ############################################
         EPOCH_NUM = 7
-
-        
         BATCH_SIZE = int( len(TRAINING_DATA) /EPOCH_NUM )
-
         DROP_NUMS = [0.01, 0.02, 0.03, 0.04]
         LEARN_RATES = [0.001, 0.002, 0.003, 0.004]
 
@@ -304,20 +259,17 @@ def sweep():
             for drop in DROP_NUMS:
                 train(training_examples, BATCH_SIZE, EPOCH_NUM, drop , rate)
 
-
-                #scores the model
+                # Scores the model
                 dev_examples = make_model_data(DEV_DATA)
                 scorer = Scorer()
                 scores = scorer.score_cats(dev_examples, "cats", labels=["POSITIVE", "NEGATIVE"], multi_label=False)
                 accuracy = scores['cats_score']
                 
                 all_score.append( {"scalar": c,"lr": rate, "drop": drop, "accuracy": accuracy} )
-
       
     file_name = "best_scores.pkl" 
     with open(file_name, "wb") as file:  # Open the file in write-binary mode
         data = all_score
         pickle.dump(data, file)
-
 
 sweep()
